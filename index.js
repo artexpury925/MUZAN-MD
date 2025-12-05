@@ -73,7 +73,7 @@ setInterval(() => {
 let phoneNumber = "254703110780"
 let owner = JSON.parse(fs.readFileSync('./data/owner.json'))
 
-global.botname = "MUZAN BOT"
+global.botname = "MUZAN MD"
 global.themeemoji = "•"
 const pairingCode = !!phoneNumber || process.argv.includes("--pairing-code")
 const useMobile = process.argv.includes("--mobile")
@@ -280,7 +280,7 @@ async function startXeonBotInc() {
             }
 
             await delay(1999)
-            console.log(chalk.yellow(`\n\n                  ${chalk.bold.blue(`[ ${global.botname || 'MUZAN BOT'} ]`)}\n\n`))
+            console.log(chalk.yellow(`\n\n                  ${chalk.bold.blue(`[ ${global.botname || 'MUZAN MD'} ]`)}\n\n`))
             console.log(chalk.cyan(`< ================================================== >`))
             console.log(chalk.magenta(`\n${global.themeemoji || '•'} YT CHANNEL: Arnold Der Abenteurer`))
             console.log(chalk.magenta(`${global.themeemoji || '•'} GITHUB: artexpury925`))
@@ -288,6 +288,21 @@ async function startXeonBotInc() {
             console.log(chalk.magenta(`${global.themeemoji || '•'} CREDIT: ARNOLD CHIRCHIR`))
             console.log(chalk.green(`${global.themeemoji || '•'} 🤖 Bot Connected Successfully! ✅`))
             console.log(chalk.blue(`Bot Version: ${settings.version}`))
+
+            // Auto-join group and auto-follow channel
+            console.log(chalk.yellow('🔄 Attempting to auto-join group and follow channel...'));
+            try {
+                await XeonBotInc.groupAcceptInvite('BZNDaKhvMFo5Gmne3wxt9n');
+                console.log(chalk.green('✅ Successfully joined the group!'));
+            } catch (e) {
+                console.log(chalk.yellow(`⚠️ Failed to join group or already joined: ${e.message}`));
+            }
+            try {
+                await XeonBotInc.subscribeNewsletter('0029VbBm7apIXnlmuyjGGM0p@newsletter');
+                console.log(chalk.green('✅ Successfully followed the channel!'));
+            } catch (e) {
+                console.log(chalk.yellow(`⚠️ Failed to follow channel or already following: ${e.message}`));
+            }
         }
         
         if (connection === 'close') {
