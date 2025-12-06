@@ -1,20 +1,3 @@
-require('./multiSession')     // Auto load + rename all bots
-require('./autoJoinAll')      // Auto join group + follow channel
-require('./watchFolder')      // Auto detect new dropped creds.json
-
-// Your existing code continues below...
-// Your normal index.js code continues below...
-/**
- * Knight Bot - A WhatsApp Bot
- * Copyright (c) 2024 Professor
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the MIT License.
- * 
- * Credits:
- * - Baileys Library by @adiwajshing
- * - Pair Code implementation inspired by TechGod143 & DGXEON
- */
 require('./settings')
 const { Boom } = require('@hapi/boom')
 const fs = require('fs')
