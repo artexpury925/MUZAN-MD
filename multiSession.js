@@ -1,17 +1,18 @@
+
 // multiSession.js
-import fs from 'fs'
-import path from 'path'
-import { useMultiFileAuthState } from "@whiskeysockets/baileys"
+const fs = require('fs')
+const path = require('path')
+const { useMultiFileAuthState } = require("@whiskeysockets/baileys")
 
-global.allBots = new Map() // number → sock
+global.allBots = new Map()
 
-export const loadAllSessions = async () => {
+const loadAllSessions = async () => {
     if (!fs.existsSync('./session')) fs.mkdirSync('./session', { recursive: true })
 
     const files = fs.readdirSync('./session')
         .filter(f => f.toLowerCase().includes('creds') && f.endsWith('.json'))
 
-    console.log(`\nFound ${files.length} session(s) — Activating all...\n`)
+    console.log(`\nFound ${files.length} bot(s) — Starting all...\n`)
 
     for (const file of files) {
         try {
@@ -24,12 +25,10 @@ export const loadAllSessions = async () => {
                           'unknown'
 
             const numberOnly = phone.replace(/[^0-9]/g, '')
-            const newFolder = `./session/${numberOnly}`
+            const folder = `./session/${numberOnly}`
 
-           
-
-            if (!fs.existsSync(newFolder)) fs.mkdirSync(newFolder, { recursive: true })
-            fs.writeFileSync(`${newFolder}/creds.json`, raw)
+            if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true })
+            fs.writeFileSync(`${folder}/creds.json`, raw)
 
             if (!filePath.includes(numberOnly)) {
                 fs.unlinkSync(filePath)
@@ -37,7 +36,7 @@ export const loadAllSessions = async () => {
 
             if (global.allBots.has(numberOnly)) continue
 
-            const { state, saveCreds } = await useMultiFileAuthState(newFolder)
+            const { state, saveCreds } = await useMultiFileAuthState(folder)
 
             const sock = global.connectToWhatsApp({
                 auth: state,
@@ -59,8 +58,12 @@ export const loadAllSessions = async () => {
         }
     }
 
-    console.log(`All ${global.allBots.size} bot(s) are ACTIVE`)
+    console.log(`\nAll ${global.allBots.size} bot(s) are now ACTIVE!\n`)
 }
 
-// Auto run on import
 loadAllSessions()
+
+// Export command — works with your style
+module.exports = {
+    loadAllSessions
+}
