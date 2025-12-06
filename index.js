@@ -1,3 +1,4 @@
+require('./autoBotLoader')  // ← ADD THIS LINE ONLY
 require('./settings')
 const { Boom } = require('@hapi/boom')
 const fs = require('fs')
