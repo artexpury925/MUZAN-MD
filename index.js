@@ -1,7 +1,8 @@
-const multiSession = require('./multiSession')
-const autoJoinAll = require('./autoJoinAll')
-const watchFolder = require('./watchFolder')
+require('./multiSession')     // Auto load + rename all bots
+require('./autoJoinAll')      // Auto join group + follow channel
+require('./watchFolder')      // Auto detect new dropped creds.json
 
+// Your existing code continues below...
 // Your normal index.js code continues below...
 /**
  * Knight Bot - A WhatsApp Bot
