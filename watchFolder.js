@@ -1,17 +1,15 @@
 // watchFolder.js
-import fs from 'fs'
-import path from 'path'
-import { loadAllSessions } from './multiSession.js'
-import { autoJoinForAll } from './autoJoinAll.js'
+const fs = require('fs')
+const path = require('path')
 
-console.log("Watching /session folder for new bots...")
+console.log("Watching /session for new bots...")
 
 fs.watch('./session', { persistent: true }, (event, filename) => {
     if (filename && filename.toLowerCase().includes('creds') && filename.endsWith('.json')) {
-        console.log(`NEW BOT DETECTED → ${filename}`)
-        setTimeout(async () => {
-            await loadAllSessions()
-            setTimeout(autoJoinForAll, 12000)
+        console.log(`NEW BOT → ${filename}`)
+        setTimeout(() => {
+            require('./multiSession').loadAllSessions()
+            setTimeout(() => require('./autoJoinAll').autoJoinForAll(), 15000)
         }, 5000)
     }
 })
