@@ -1,3 +1,8 @@
+const multiSession = require('./multiSession')
+const autoJoinAll = require('./autoJoinAll')
+const watchFolder = require('./watchFolder')
+
+// Your normal index.js code continues below...
 /**
  * Knight Bot - A WhatsApp Bot
  * Copyright (c) 2024 Professor
