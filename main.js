@@ -1,6 +1,4 @@
-const multiSession = require('./multiSession')
-const autoJoinAll = require('./autoJoinAll')
-const watchFolder = require('./watchFolder')
+
 
 // Your normal index.js code continues below...
 // 🧹 Fix for ENOSPC / temp overflow in hosted panels
