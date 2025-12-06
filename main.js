@@ -41,6 +41,7 @@ const { isSudo } = require('./lib/index');
 const isOwnerOrSudo = require('./lib/isOwner');
 const { autotypingCommand, isAutotypingEnabled, handleAutotypingForMessage, handleAutotypingForCommand, showTypingAfterCommand } = require('./commands/autotyping');
 const { autoreadCommand, isAutoreadEnabled, handleAutoread } = require('./commands/autoread');
+const { antibingwaCommand, antiBingwaHandler } = require('./antibingwa');
 
 // Command imports
 const tagAllCommand = require('./commands/tagall');
@@ -1253,6 +1254,12 @@ async function handleGroupParticipantUpdate(sock, update) {
         console.error('Error in handleGroupParticipantUpdate:', error);
     }
 }
+
+// Anti-Bingwa Command (.antibingwa)
+await antibingwaCommand(XeonBotInc, mek);
+
+// Anti-Bingwa Auto Delete + Kick
+await antiBingwaHandler(XeonBotInc, mek);
 
 // Instead, export the handlers along with handleMessages
 module.exports = {
