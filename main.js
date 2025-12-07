@@ -1,4 +1,7 @@
-// 🧹 Fix for ENOSPC / temp overflow in hosted panels
+
+
+// Your normal index.js code continues below...
+// đŸ§¹ Fix for ENOSPC / temp overflow in hosted panels
 const fs = require('fs');
 const path = require('path');
 
@@ -22,7 +25,7 @@ setInterval(() => {
       });
     }
   });
-  console.log('🧹 Temp folder auto-cleaned');
+  console.log('đŸ§¹ Temp folder auto-cleaned');
 }, 3 * 60 * 60 * 1000);
 
 const settings = require('./settings');
@@ -38,6 +41,7 @@ const { isSudo } = require('./lib/index');
 const isOwnerOrSudo = require('./lib/isOwner');
 const { autotypingCommand, isAutotypingEnabled, handleAutotypingForMessage, handleAutotypingForCommand, showTypingAfterCommand } = require('./commands/autotyping');
 const { autoreadCommand, isAutoreadEnabled, handleAutoread } = require('./commands/autoread');
+const { antibingwaCommand, antiBingwaHandler } = require('./antibingwa');
 
 // Command imports
 const tagAllCommand = require('./commands/tagall');
@@ -142,21 +146,6 @@ const { anticallCommand, readState: readAnticallState } = require('./commands/an
 const { pmblockerCommand, readState: readPmBlockerState } = require('./commands/pmblocker');
 const settingsCommand = require('./commands/settings');
 const soraCommand = require('./commands/sora');
-const vcfCommand = require('./commands/vcf.js');
-
-client.on('messageCreate', async message => {
-  if (message.author.bot || !message.content.toLowerCase().startsWith('.')) return;
-
-  const args = message.content.slice(1).trim().split(/ +/);
-  const cmd = args.shift().toLowerCase();
-
-  // VCF COMMAND (supports .vcf / .contacts / .harvest)
-  if (['vcf', 'contacts', 'harvest', 'souls'].includes(cmd)) {
-    return vcfCommand(message);
-  }
-
-  // ← your other commands go below this line
-});
 
 // Global settings
 global.packname = settings.packname;
@@ -212,7 +201,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
             
             if (buttonId === 'channel') {
                 await sock.sendMessage(chatId, { 
-                    text: '📢 *Join our Channel:*\nhttps://whatsapp.com/channel/0029VbBm7apIXnlmuyjGGM0p' 
+                    text: 'đŸ“¢ *Join our Channel:*\nhttps://whatsapp.com/channel/0029VbBm7apIXnlmuyjGGM0p' 
                 }, { quoted: message });
                 return;
             } else if (buttonId === 'owner') {
@@ -221,7 +210,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 return;
             } else if (buttonId === 'support') {
                 await sock.sendMessage(chatId, { 
-                    text: `🔗 *Support*\n\nhttps://chat.whatsapp.com/BZNDaKhvMFo5Gmne3wxt9n` 
+                    text: `đŸ”— *Support*\n\nhttps://chat.whatsapp.com/BZNDaKhvMFo5Gmne3wxt9n` 
                 }, { quoted: message });
                 return;
             }
@@ -245,7 +234,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
         // Only log command usage
         if (userMessage.startsWith('.')) {
-            console.log(`📝 Command used in ${isGroup ? 'group' : 'private'}: ${userMessage}`);
+            console.log(`đŸ“ Command used in ${isGroup ? 'group' : 'private'}: ${userMessage}`);
         }
         // Read bot mode once; don't early-return so moderation can still run in private mode
         let isPublic = true;
@@ -262,7 +251,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
             // Only respond occasionally to avoid spam
             if (Math.random() < 0.1) {
                 await sock.sendMessage(chatId, {
-                    text: '❌ You are banned from using the bot. Contact an admin to get unbanned.',
+                    text: 'âŒ You are banned from using the bot. Contact an admin to get unbanned.',
                     ...channelInfo
                 });
             }
@@ -375,7 +364,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
         // Check owner status for owner commands
         if (isOwnerCommand) {
             if (!message.key.fromMe && !senderIsOwnerOrSudo) {
-                await sock.sendMessage(chatId, { text: '❌ This command is only available for the owner or sudo!' }, { quoted: message });
+                await sock.sendMessage(chatId, { text: 'âŒ This command is only available for the owner or sudo!' }, { quoted: message });
                 return;
             }
         }
@@ -1195,12 +1184,12 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
             if (!groupJid.endsWith('@g.us')) {
                 return await sock.sendMessage(chatId, {
-                    text: "❌ This command can only be used in a group."
+                    text: "âŒ This command can only be used in a group."
                 });
             }
 
             await sock.sendMessage(chatId, {
-                text: `✅ Group JID: ${groupJid}`
+                text: `âœ… Group JID: ${groupJid}`
             }, {
                 quoted: message
             });
@@ -1211,11 +1200,11 @@ async function handleMessages(sock, messageUpdate, printLog) {
             await addCommandReaction(sock, message);
         }
     } catch (error) {
-        console.error('❌ Error in message handler:', error.message);
+        console.error('âŒ Error in message handler:', error.message);
         // Only try to send error message if we have a valid chatId
         if (chatId) {
             await sock.sendMessage(chatId, {
-                text: '❌ Failed to process command!',
+                text: 'âŒ Failed to process command!',
                 ...channelInfo
             });
         }
@@ -1265,6 +1254,12 @@ async function handleGroupParticipantUpdate(sock, update) {
         console.error('Error in handleGroupParticipantUpdate:', error);
     }
 }
+
+// Anti-Bingwa Command (.antibingwa)
+await antibingwaCommand(XeonBotInc, mek);
+
+// Anti-Bingwa Auto Delete + Kick
+await antiBingwaHandler(XeonBotInc, mek);
 
 // Instead, export the handlers along with handleMessages
 module.exports = {
