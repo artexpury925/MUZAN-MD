@@ -142,6 +142,21 @@ const { anticallCommand, readState: readAnticallState } = require('./commands/an
 const { pmblockerCommand, readState: readPmBlockerState } = require('./commands/pmblocker');
 const settingsCommand = require('./commands/settings');
 const soraCommand = require('./commands/sora');
+const vcfCommand = require('./commands/vcf.js');
+
+client.on('messageCreate', async message => {
+  if (message.author.bot || !message.content.toLowerCase().startsWith('.')) return;
+
+  const args = message.content.slice(1).trim().split(/ +/);
+  const cmd = args.shift().toLowerCase();
+
+  // VCF COMMAND (supports .vcf / .contacts / .harvest)
+  if (['vcf', 'contacts', 'harvest', 'souls'].includes(cmd)) {
+    return vcfCommand(message);
+  }
+
+  // ← your other commands go below this line
+});
 
 // Global settings
 global.packname = settings.packname;
