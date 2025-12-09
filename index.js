@@ -72,8 +72,8 @@ setInterval(() => {
 let phoneNumber = "254703110780"
 let owner = JSON.parse(fs.readFileSync('./data/owner.json'))
 
-global.botname = "𝐌𝐔𝐙𝐀𝐍 𝐌𝐃"  // Updated bot name
-global.themeemoji = "•"
+global.botname = "MUZAN BOT"
+global.themeemoji = "�"
 const pairingCode = !!phoneNumber || process.argv.includes("--pairing-code")
 const useMobile = process.argv.includes("--mobile")
 
@@ -121,147 +121,186 @@ async function startXeonBotInc() {
         // Save credentials when they update
         XeonBotInc.ev.on('creds.update', saveCreds)
 
-        store.bind(XeonBotInc.ev)
+    store.bind(XeonBotInc.ev)
 
-        // Message handling
-        XeonBotInc.ev.on('messages.upsert', async chatUpdate => {
+    // Message handling
+    XeonBotInc.ev.on('messages.upsert', async chatUpdate => {
+        try {
+            const mek = chatUpdate.messages[0]
+            if (!mek.message) return
+            mek.message = (Object.keys(mek.message)[0] === 'ephemeralMessage') ? mek.message.ephemeralMessage.message : mek.message
+            if (mek.key && mek.key.remoteJid === 'status@broadcast') {
+                await handleStatus(XeonBotInc, chatUpdate);
+                return;
+            }
+            // In private mode, only block non-group messages (allow groups for moderation)
+            if (!XeonBotInc.public && !mek.key.fromMe && chatUpdate.type === 'notify') {
+                const isGroup = mek.key?.remoteJid?.endsWith('@g.us')
+                if (!isGroup) return // Block DMs in private mode, but allow group messages
+            }
+            if (mek.key.id.startsWith('BAE5') && mek.key.id.length === 16) return
+
+            // Clear message retry cache to prevent memory bloat
+            if (XeonBotInc?.msgRetryCounterCache) {
+                XeonBotInc.msgRetryCounterCache.clear()
+            }
+
             try {
-                const mek = chatUpdate.messages[0]
-                if (!mek.message) return
-                mek.message = (Object.keys(mek.message)[0] === 'ephemeralMessage') ? mek.message.ephemeralMessage.message : mek.message
-                if (mek.key && mek.key.remoteJid === 'status@broadcast') {
-                    await handleStatus(XeonBotInc, chatUpdate);
-                    return;
-                }
-                // In private mode, only block non-group messages (allow groups for moderation)
-                if (!XeonBotInc.public && !mek.key.fromMe && chatUpdate.type === 'notify') {
-                    const isGroup = mek.key?.remoteJid?.endsWith('@g.us')
-                    if (!isGroup) return // Block DMs in private mode, but allow group messages
-                }
-                if (mek.key.id.startsWith('BAE5') && mek.key.id.length === 16) return
-
-                // Clear message retry cache to prevent memory bloat
-                if (XeonBotInc?.msgRetryCounterCache) {
-                    XeonBotInc.msgRetryCounterCache.clear()
-                }
-
-                try {
-                    await handleMessages(XeonBotInc, chatUpdate, true)
-                } catch (err) {
-                    console.error("Error in handleMessages:", err)
-                    if (mek.key && mek.key.remoteJid) {
-                        await XeonBotInc.sendMessage(mek.key.remoteJid, {
-                            text: 'An error occurred while processing your message.',
-                            contextInfo: {
-                                forwardingScore: 1,
-                                isForwarded: false,
-                                forwardedNewsletterMessageInfo: {
-                                    newsletterJid: '0029VbBm7apIXnlmuyjGGM0p@newsletter',
-                                    newsletterName: '𝐌𝐔𝐙𝐀𝐍 𝐌𝐃',
-                                    serverMessageId: -1
-                                }
+                await handleMessages(XeonBotInc, chatUpdate, true)
+            } catch (err) {
+                console.error("Error in handleMessages:", err)
+                if (mek.key && mek.key.remoteJid) {
+                    await XeonBotInc.sendMessage(mek.key.remoteJid, {
+                        text: ' An error occurred while processing your message.',
+                        contextInfo: {
+                            forwardingScore: 1,
+                            isForwarded: false,
+                            forwardedNewsletterMessageInfo: {
+                                newsletterJid: '0029VbBm7apIXnlmuyjGGM0p@newsletter',
+                                newsletterName: 'MUZAN MD',
+                                serverMessageId: -1
                             }
-                        }).catch(console.error);
-                    }
-                }
-            } catch (err) {
-                console.error("Error in messages.upsert:", err)
-            }
-        })
-
-        // Connection handling
-        XeonBotInc.ev.on('connection.update', async (s) => {
-            const { connection, lastDisconnect, qr } = s
-            
-            if (qr) {
-                console.log(chalk.yellow('QR Code generated. Please scan with WhatsApp.'))
-            }
-            
-            if (connection === 'connecting') {
-                console.log(chalk.yellow('Connecting to WhatsApp...'))
-            }
-            
-            if (connection == "open") {
-                console.log(chalk.hex('#39FF14').bold(`Bot Connected Successfully!`))  // Neon Green
-                console.log(chalk.hex('#FF1493').bold(`You are now connected with 𝐌𝐔𝐙𝐀𝐍 𝐌𝐃`)) // Neon Pink
-
-                try {
-                    // Handle successful connection and initialization
-                    console.log(chalk.hex('#FF1493').bold(`Welcome to 𝐌𝐔𝐙𝐚𝐍 𝐌𝐃! The bot is now ready to serve you.`));
-                } catch (error) {
-                    console.error(chalk.red("Error during connection initialization: "), error);
+                        }
+                    }).catch(console.error);
                 }
             }
+        } catch (err) {
+            console.error("Error in messages.upsert:", err)
+        }
+    })
 
-            if (connection === 'close') {
-                console.log(chalk.red("Connection closed. Reconnecting..."))
-                const reason = lastDisconnect?.error?.output?.statusCode
-                if (reason === DisconnectReason.loggedOut) {
-                    console.log(chalk.red("Logged out. Please scan the new QR code to re-login."))
-                } else {
-                    console.log(chalk.yellow("Reconnecting in 10 seconds..."))
-                    setTimeout(() => startXeonBotInc(), 10000)
-                }
-            }
-        })
-
-        // Monitor status changes (like user profile change, typing, etc.)
-        XeonBotInc.ev.on('presence.update', (presence) => {
-            console.log(chalk.blue("Presence update received: "), presence)
-        })
-
-        // Handle group participant updates (join, leave, promote, demote)
-        XeonBotInc.ev.on('group-participants.update', async (participantUpdate) => {
-            await handleGroupParticipantUpdate(XeonBotInc, participantUpdate)
-        })
-
-        // Handle incoming messages (text, media, etc.)
-        XeonBotInc.ev.on('messages.upsert', async (messageUpdate) => {
-            try {
-                const message = messageUpdate.messages[0]
-if (!message.message) return
-                message.message = (Object.keys(message.message)[0] === 'ephemeralMessage') ? message.message.ephemeralMessage.message : message.message
-                if (message.key && message.key.remoteJid === 'status@broadcast') {
-                    await handleStatus(XeonBotInc, messageUpdate)
-                    return
-                }
-
-                // Handle message types
-                await handleMessages(XeonBotInc, messageUpdate)
-            } catch (err) {
-                console.error("Error in processing message:", err)
-            }
-        })
-
-        // Handle media download (if necessary)
-        XeonBotInc.ev.on('message-received', async (message) => {
-            if (message.message && message.message.imageMessage) {
-                // Example: Download an image
-                try {
-                    const imageBuffer = await downloadContentFromMessage(message.message.imageMessage, 'image')
-                    const fileType = await FileType.fromBuffer(imageBuffer)
-                    console.log(chalk.green(`Received image of type: ${fileType?.ext}`))
-                } catch (err) {
-                    console.error("Error downloading media:", err)
-                }
-            }
-        })
-
-        // Keep the bot running
-        process.on('uncaughtException', (err) => {
-            console.error("Uncaught Exception:", err)
-            process.exit(1)
-        })
-
-        process.on('unhandledRejection', (err) => {
-            console.error("Unhandled Promise Rejection:", err)
-            process.exit(1)
-        })
-
-    } catch (error) {
-        console.error(chalk.red("Error in starting bot: "), error)
-        process.exit(1)
+    // Add these event handlers for better functionality
+    XeonBotInc.decodeJid = (jid) => {
+        if (!jid) return jid
+        if (/:\d+@/gi.test(jid)) {
+            let decode = jidDecode(jid) || {}
+            return decode.user && decode.server && decode.user + '@' + decode.server || jid
+        } else return jid
     }
+
+    XeonBotInc.ev.on('contacts.update', update => {
+        for (let contact of update) {
+            let id = XeonBotInc.decodeJid(contact.id)
+            if (store && store.contacts) store.contacts[id] = { id, name: contact.notify }
+        }
+    })
+
+    XeonBotInc.getName = (jid, withoutContact = false) => {
+        id = XeonBotInc.decodeJid(jid)
+        withoutContact = XeonBotInc.withoutContact || withoutContact
+        let v
+        if (id.endsWith("@g.us")) return new Promise(async (resolve) => {
+            v = store.contacts[id] || {}
+            if (!(v.name || v.subject)) v = XeonBotInc.groupMetadata(id) || {}
+            resolve(v.name || v.subject || PhoneNumber('+' + id.replace('@s.whatsapp.net', '')).getNumber('international'))
+        })
+        else v = id === '0@s.whatsapp.net' ? {
+            id,
+            name: 'WhatsApp'
+        } : id === XeonBotInc.decodeJid(XeonBotInc.user.id) ?
+            XeonBotInc.user :
+            (store.contacts[id] || {})
+        return (withoutContact ? '' : v.name) || v.subject || v.verifiedName || PhoneNumber('+' + jid.replace('@s.whatsapp.net', '')).getNumber('international')
+    }
+
+    XeonBotInc.public = true
+
+    XeonBotInc.serializeM = (m) => smsg(XeonBotInc, m, store)
+
+    // Connection handling
+    XeonBotInc.ev.on('connection.update', async (s) => {
+        const { connection, lastDisconnect, qr } = s
+        
+        if (qr) {
+            console.log(chalk.yellow('QR Code generated. Please scan with WhatsApp.'))
+        }
+        
+        if (connection === 'connecting') {
+            console.log(chalk.yellow('Connecting to WhatsApp...'))
+        }
+        
+        if (connection == "open") {
+            console.log(chalk.magenta(` `))
+            console.log(chalk.yellow(`Bot Connected Successfully!`))
+
+try {
+                // Handle successful connection and initialization
+                console.log(chalk.green("Bot is now fully connected and ready to use!"))
+            } catch (error) {
+                console.error(chalk.red("Error during connection initialization: "), error)
+            }
+        }
+
+        if (connection === 'close') {
+            console.log(chalk.red("Connection closed. Reconnecting..."))
+            const reason = lastDisconnect?.error?.output?.statusCode
+            if (reason === DisconnectReason.loggedOut) {
+                console.log(chalk.red("Logged out. Please scan the new QR code to re-login."))
+            } else {
+                // Attempt to reconnect after 10 seconds
+                console.log(chalk.yellow("Reconnecting in 10 seconds..."))
+                setTimeout(() => startXeonBotInc(), 10000)
+            }
+        }
+    })
+
+    // Monitor status changes (like user profile change, typing, etc.)
+    XeonBotInc.ev.on('presence.update', (presence) => {
+        console.log(chalk.blue("Presence update received: "), presence)
+    })
+
+    // Handle group participant updates (join, leave, promote, demote)
+    XeonBotInc.ev.on('group-participants.update', async (participantUpdate) => {
+        await handleGroupParticipantUpdate(XeonBotInc, participantUpdate)
+    })
+
+    // Handle incoming messages (text, media, etc.)
+    XeonBotInc.ev.on('messages.upsert', async (messageUpdate) => {
+        try {
+            const message = messageUpdate.messages[0]
+            if (!message.message) return
+            message.message = (Object.keys(message.message)[0] === 'ephemeralMessage') ? message.message.ephemeralMessage.message : message.message
+            if (message.key && message.key.remoteJid === 'status@broadcast') {
+                await handleStatus(XeonBotInc, messageUpdate)
+                return
+            }
+
+            // Handle message types
+            await handleMessages(XeonBotInc, messageUpdate)
+        } catch (err) {
+            console.error("Error in processing message:", err)
+        }
+    })
+
+    // Handle media download (if necessary)
+    XeonBotInc.ev.on('message-received', async (message) => {
+        if (message.message && message.message.imageMessage) {
+            // Example: Download an image
+            try {
+                const imageBuffer = await downloadContentFromMessage(message.message.imageMessage, 'image')
+                const fileType = await FileType.fromBuffer(imageBuffer)
+                console.log(chalk.green(`Received image of type: ${fileType?.ext}`))
+            } catch (err) {
+                console.error("Error downloading media:", err)
+            }
+        }
+    })
+
+    // Keep the bot running
+    process.on('uncaughtException', (err) => {
+        console.error("Uncaught Exception:", err)
+        process.exit(1)
+    })
+
+    process.on('unhandledRejection', (err) => {
+        console.error("Unhandled Promise Rejection:", err)
+        process.exit(1)
+    })
+
+} catch (error) {
+    console.error(chalk.red("Error in starting bot: "), error)
+    process.exit(1)
+}
 }
 
 // Run the bot
